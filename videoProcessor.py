@@ -134,12 +134,10 @@ class videoManager:
     def processVideo(self):
         while self.videoProcessing == True:
             fps = self.FPS.get()
-
             key = cv.waitKey(10)
             if key == 27:  # ESC
                 break
             number, mode = self.select_mode(key, self.mode)
-
             image, debugImage, timestamp = self.captureFrame()
             if image is False:
                 break
@@ -206,8 +204,8 @@ class videoManager:
                     else:
                         if self.clickToggleCount > 2 and self.clickToggleCount < 20:
                             print("Click")
-                            self.sectorAttention(image)
-                            # pg.click()
+                            # self.sectorAttention(image)
+                            pg.click()
                         self.clickToggleCount = 0
                     print(self.clickToggleCount)
                     debugImage = self.draw_bounding_rect(self.use_brect, debugImage, brect)
@@ -232,25 +230,28 @@ class videoManager:
             debugImage = self.draw_point_history(debugImage, self.point_history)
             debugImage = self.draw_info(debugImage, fps, mode, number)
 
-            # cv.imshow('Hand Gesture Recognition', image)
+            cv.imshow('Hand Gesture Recognition', image)
 
         self.videoFeed.release()
         cv.destroyAllWindows()
     
     def sectorAttention(self, image):
-        faceResults = self.faceMesh.process(image)
-        image, gazeCoordinates = self.gaze(image, faceResults.multi_face_landmarks[0])
-        if gazeCoordinates is not None:
-            screenX = (gazeCoordinates[0]-(self.eyeCalibration[1][0][0]+self.eyeCalibration[1][2][0])/2)*self.eyeCalibration[0][0]
-            screenY = (gazeCoordinates[1]-(self.eyeCalibration[1][0][1]+self.eyeCalibration[1][2][1])/2)*self.eyeCalibration[0][1]
-            if screenX > pg.size()[0]*0.5:
-                self.sector[0] = 'right'
-            else:
-                self.sector[0] = 'left'
-            if screenY > pg.size()[1]*0.3:
-                self.sector[1] = 'bottom'
-            else:
-                self.sector[1] = 'top'
+        try:
+            faceResults = self.faceMesh.process(image)
+            image, gazeCoordinates = self.gaze(image, faceResults.multi_face_landmarks[0])
+            if gazeCoordinates is not None:
+                screenX = (gazeCoordinates[0]-(self.eyeCalibration[1][0][0]+self.eyeCalibration[1][2][0])/2)*self.eyeCalibration[0][0]
+                screenY = (gazeCoordinates[1]-(self.eyeCalibration[1][0][1]+self.eyeCalibration[1][2][1])/2)*self.eyeCalibration[0][1]
+                if screenX > pg.size()[0]*0.5:
+                    self.sector[0] = 'right'
+                else:
+                    self.sector[0] = 'left'
+                if screenY > pg.size()[1]*0.3:
+                    self.sector[1] = 'bottom'
+                else:
+                    self.sector[1] = 'top'
+        except:
+            print("No face found")
 
     def distance(self, point1, point2):
         return np.sqrt((point1[0]-point2[0])**2+(point1[1]-point2[1])**2)

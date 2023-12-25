@@ -4,8 +4,11 @@ from PyQt6.QtGui import QMovie, QPixmap, QColor, QPainter, QPen, QBrush, QPainte
 import sys
 import time
 import videoProcessor as video
+import audioProcessor as audio
 import pyautogui as pg
+import multiprocessing as mp
 tracker = video.videoManager()
+pg.FAILSAFE = False
 
 class gestureControlSetup(QMainWindow):
     def __init__(self):
@@ -70,6 +73,17 @@ class calibrateWindow(QWidget):
             self.hide()
 
 if __name__ == '__main__':
+    filePath = mp.Queue()
+    audioText = mp.Array('c', 100)
+    audioToggle = mp.Value('i', 0)
+    audioProcess = mp.Process(target=audio.rollingAudio, args=(filePath, audioToggle,))
+    transcribeProcess = mp.Process(target=audio.transcribeAudio, args=(filePath, audioText,))
+    # audioProcess.start()
+    # time.sleep(5)
+    # transcribeProcess.start()
+    # while True:
+    #     print(audioText.value.decode('utf-8'))
+    #     time.sleep(1)
     app = QApplication(sys.argv)
     mainWindow = gestureControlSetup()
     sys.exit(app.exec())
